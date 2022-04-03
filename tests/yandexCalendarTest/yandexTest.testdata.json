@@ -1,0 +1,14 @@
+{
+  "input": {
+    "eventName": "Новая встреча",
+    "description": "Описание встречи",
+    "location": "Лаборатория Касперского",
+    "members": ["email1@email.com", "email2@email.com"]
+  },
+  "expected": {
+    "headerNewEvent": "Новое событие",
+    "videoCallInfo": "Ссылка на встречу будет в описании.",
+    "headerEditEvent": "Редактирование события",
+    "eventType": "Встреча"
+  }
+}
