@@ -1,5 +1,3 @@
-const { expect } = require('@playwright/test');
-
 exports.EventPage = class EventPage {
 
     constructor(page) {
@@ -19,20 +17,4 @@ exports.EventPage = class EventPage {
         this.eventMemberSpan = page.locator('.qa-MembersField .qa-Picker-Item span');
         this.saveEventButton = page.locator('button.qa-EventForm-SaveButton')
     }
-
-    // async fillCreateEventForm() {
-    //     await this.nameInput.type('Новая встреча');
-    //     await this.addVideoCallButton.click();
-    //     await this.submitButton.click();
-    // }
-
-    // async getStarted() {
-    //     await this.getStartedLink.first().click();
-    //     await expect(this.gettingStartedHeader).toBeVisible();
-    // }
-    //
-    // async pageObjectModel() {
-    //     await this.getStarted();
-    //     await this.pomLink.click();
-    // }
 }

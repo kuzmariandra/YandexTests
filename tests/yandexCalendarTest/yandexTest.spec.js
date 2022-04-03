@@ -8,52 +8,34 @@ const yandexTestData = require('./yandexTest.testdata.json');
 let input = yandexTestData.input;
 let expected = yandexTestData.expected;
 const moment = require("moment");
-// todo goto baseURL;
+const promiseWaterfall = require('promise.waterfall')
 // todo stabilize login;
-// todo map;
 // todo stabilize afterAll;
-// todo check pages;
-// todo check testCase;
-// todo to know how to send project;
 test.describe.configure({mode: 'serial'});
 test.describe('Yandex Calendar', () => {
     let page;
     let loginPage;
     let calendarPage;
     let eventPage;
+    let eventEndDateTime;
+
     test.beforeAll(async ({browser}) => {
         page = await browser.newPage();
-        // const loginPage = new LoginPage(page);
-        // const calendarPage = new CalendarPage(page);
         loginPage = new LoginPage(page);
         calendarPage = new CalendarPage(page);
         eventPage = new EventPage(page);
 
-        await loginPage.goto();
-        await loginPage.login(accountTestData.account);
+        await page.goto('/');
+        await loginPage.login(accountTestData.account1);
         await expect(calendarPage.createEventButton).toBeVisible();
     });
     test.afterAll(async () => {
-        // const loginPage = new LoginPage(page);
-        // const calendarPage = new CalendarPage(page);
-
-        await loginPage.goto();
-        // page.on('dialog', async dialog => {
-        //     // console.log(dialog.message());
-        //     await dialog.dismiss();
-        // });
-        await calendarPage.eventLocator.click();
-        await calendarPage.eventFormPreview.waitFor();
-        await calendarPage.eventFormPreviewDeleteButton.click();
-        await calendarPage.modalButtonDelete.waitFor();
-        await calendarPage.modalButtonDelete.click();
+        await page.goto('/');
+        await calendarPage.deleteEvent(eventEndDateTime);
         await page.close();
     });
 
     test('Create event', async () => {
-        // const calendarPage = new CalendarPage(page);
-        // const eventPage = new EventPage(page);
-
         // Step1
         await calendarPage.createEventButton.click();
         await expect(eventPage.header).toHaveText(expected.headerNewEvent);
@@ -78,7 +60,7 @@ test.describe('Yandex Calendar', () => {
         const eventStartDateTime = moment().add(1, 'day');
         const eventStartTime = eventStartDateTime.format(moment.HTML5_FMT.TIME);
         const eventStartDate = eventStartDateTime.format('DD.MM.YYYY');
-        const eventEndDateTime = eventStartDateTime.add(30, 'minute');
+        eventEndDateTime = eventStartDateTime.add(30, 'minute');
         const eventEndTime = eventEndDateTime.format(moment.HTML5_FMT.TIME);
         const eventEndDate = eventEndDateTime.format('DD.MM.YYYY');
 
@@ -89,9 +71,7 @@ test.describe('Yandex Calendar', () => {
 
         // Step7
         await eventPage.eventLocationInput.click();
-        // await eventPage.eventLocationInput.fill(input.location);
         await eventPage.eventLocationInput.type(input.location);
-        // await eventPage.eventLocationInput.press('Enter');
         await expect(eventPage.eventLocationInput).toHaveValue(input.location);
 
         // Step8
@@ -103,9 +83,6 @@ test.describe('Yandex Calendar', () => {
     });
 
     test('Add members', async () => {
-        // const calendarPage = new CalendarPage(page);
-        // const eventPage = new EventPage(page);
-
         // Step1
         await calendarPage.eventLocator.click();
         await calendarPage.eventFormPreview.waitFor();
@@ -117,16 +94,14 @@ test.describe('Yandex Calendar', () => {
         await expect(eventPage.header).toHaveText(expected.headerEditEvent);
 
         // Step3
-        // await Promise.all(input.members.map(async member => {
-        //     await eventPage.eventMembersInput.type(member);
-        //     await eventPage.eventMembersInput.press('Enter');
-        //     await eventPage.eventMemberSpan.waitFor();
-        // }));
-        await eventPage.eventMembersInput.type(input.members[0]);
-        await eventPage.eventMembersInput.press('Enter');
-        await eventPage.eventMemberSpan.waitFor();
-        await eventPage.eventMembersInput.type(input.members[1]);
-        await eventPage.eventMembersInput.press('Enter');
+        const makeAddMember = (member) => {
+            return (async () => {
+                await eventPage.eventMembersInput.type(member);
+                await eventPage.eventMembersInput.press('Enter');
+                return await eventPage.eventMemberSpan.waitFor();
+            });
+        };
+        await promiseWaterfall(input.members.map(makeAddMember));
         await expect(eventPage.eventMemberSpan).toHaveText(input.members);
 
         // Step4
