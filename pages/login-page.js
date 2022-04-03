@@ -9,7 +9,7 @@ exports.LoginPage = class LoginPage {
     }
 
     async login(account) {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.page.waitForLoadState('networkidle');
         await this.loginInput.type(account.login);
         await this.submitLoginButton.click();
         await this.passwdInput.type(account.passwd);

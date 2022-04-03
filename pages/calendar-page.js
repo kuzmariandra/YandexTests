@@ -1,5 +1,8 @@
+const moment = require("moment");
+
 exports.CalendarPage = class CalendarPage {
     constructor(page) {
+        this.page = page;
         this.createEventButton = page.locator('.qa-AsideCreateEvent button');
         this.eventLocator = page.locator('div.qa-GridEvent');
         this.eventMeetupLocator = page.locator('div.qa-GridEvent span span');
@@ -11,16 +14,22 @@ exports.CalendarPage = class CalendarPage {
         this.headerNextButton = page.locator('.PSHeaderContainer button.qa-HeaderGridNav-Next');
     }
 
-    async deleteEvent(eventEndDateTimeformat) {
-        if (eventEndDateTimeformat.format('dddd') === "Monday") {
+    async deleteEvent() {
+        if (moment().format('dddd') === "Sunday") {
             await this.headerNextButton.click();
         }
-        await this.eventLocator.waitFor();
-        await this.eventLocator.click();
-        await this.eventFormPreview.waitFor();
-        await this.eventFormPreviewDeleteButton.click();
-        await this.modalButtonDelete.waitFor();
-        await this.modalButtonDelete.click([{button: 'middle'}]);
-        await this.eventLocator.waitFor('hidden');
+        let count = 1;
+        let isEventHidden;
+        do {
+            await this.page.waitForLoadState('networkidle');
+            await this.eventLocator.click();
+            await this.eventFormPreview.waitFor([{state: 'attached'}]);
+            await this.eventFormPreviewDeleteButton.click();
+            await this.modalButtonDelete.waitFor();
+            await this.modalButtonDelete.click([{button: 'middle'}]);
+            await this.eventLocator.waitFor('hidden');
+            isEventHidden = await this.eventLocator.isHidden();
+            count++;
+        } while (count <= 3 && !isEventHidden)
     }
 }

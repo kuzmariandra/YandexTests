@@ -9,15 +9,13 @@ let input = yandexTestData.input;
 let expected = yandexTestData.expected;
 const moment = require("moment");
 const promiseWaterfall = require('promise.waterfall')
-// todo stabilize login;
-// todo stabilize afterAll;
+
 test.describe.configure({mode: 'serial'});
 test.describe('Yandex Calendar', () => {
     let page;
     let loginPage;
     let calendarPage;
     let eventPage;
-    let eventEndDateTime;
 
     test.beforeAll(async ({browser}) => {
         page = await browser.newPage();
@@ -31,7 +29,7 @@ test.describe('Yandex Calendar', () => {
     });
     test.afterAll(async () => {
         await page.goto('/');
-        await calendarPage.deleteEvent(eventEndDateTime);
+        await calendarPage.deleteEvent();
         await page.close();
     });
 
@@ -60,7 +58,7 @@ test.describe('Yandex Calendar', () => {
         const eventStartDateTime = moment().add(1, 'day');
         const eventStartTime = eventStartDateTime.format(moment.HTML5_FMT.TIME);
         const eventStartDate = eventStartDateTime.format('DD.MM.YYYY');
-        eventEndDateTime = eventStartDateTime.add(30, 'minute');
+        const eventEndDateTime = eventStartDateTime.add(30, 'minute');
         const eventEndTime = eventEndDateTime.format(moment.HTML5_FMT.TIME);
         const eventEndDate = eventEndDateTime.format('DD.MM.YYYY');
 
@@ -84,6 +82,7 @@ test.describe('Yandex Calendar', () => {
 
     test('Add members', async () => {
         // Step1
+        await page.waitForLoadState('networkidle');
         await calendarPage.eventLocator.click();
         await calendarPage.eventFormPreview.waitFor();
         await expect(calendarPage.eventFormPreviewTitle).toHaveText(input.eventName);
